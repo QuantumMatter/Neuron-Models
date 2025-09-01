@@ -69,7 +69,12 @@ function [V, n, m, h, INa, IK, IL, Iinj] = HH(t, pd, pa, pw, gNa_bar, gK_bar, gL
     gK_0 = calc_gK(gK_bar, n(1));
 
     % Leak potential
-    E_L = V_rest + ((gK_0 * (V_rest - E_K)) + (gNa_0 * (V_rest - E_Na)) / gL_bar);
+    E_L = V_rest + ( ...
+        (gK_0*(V_rest - E_K) + gNa_0*(V_rest - E_Na)) ...
+        / ...
+        gL_bar ...
+    );
+    fprintf('E_K: %f, E_Na: %f, E_L: %f\r\n', E_K, E_Na, E_L);
     
     % Ion currents
     INa(1) = gNa_0 * (V_rest - E_Na);
@@ -85,17 +90,17 @@ function [V, n, m, h, INa, IK, IL, Iinj] = HH(t, pd, pa, pw, gNa_bar, gK_bar, gL
         [alpha_h, beta_h] = calc_h_rates(V(i-1));
         [alpha_n, beta_n] = calc_n_rates(V(i-1));
 
-        dmdt = alpha_m * (1 - m(i-1)) + beta_m*m(i-1);
-        dhdt = alpha_h * (1 - h(i-1)) + beta_h*h(i-1);
-        dndt = alpha_n * (1 - n(i-1)) + beta_n*n(i-1);
+        dmdt = alpha_m * (1 - m(i-1)) - beta_m*m(i-1);
+        dhdt = alpha_h * (1 - h(i-1)) - beta_h*h(i-1);
+        dndt = alpha_n * (1 - n(i-1)) - beta_n*n(i-1);
 
         m(i) = m(i-1) + dt * dmdt;
         h(i) = h(i-1) + dt * dhdt;
         n(i) = n(i-1) + dt * dndt;
 
         % Calculate the currents of each ion channel
-        gNa = calc_gNa(gNa_bar, m(i), h(i));
-        gK = calc_gK(gK_bar, n(i));
+        gNa = calc_gNa(gNa_bar, m(i-1), h(i-1));
+        gK = calc_gK(gK_bar, n(i-1));
 
         INa(i) = gNa * (V(i-1) - E_Na);
         IK(i) = gK * (V(i-1) - E_K);
@@ -108,7 +113,7 @@ function [V, n, m, h, INa, IK, IL, Iinj] = HH(t, pd, pa, pw, gNa_bar, gK_bar, gL
             Iinj(i) = pa;
         end
 
-        I_cm = Iinj(i-1) - INa(i-1) - IK(i-1) - IL(i-1);
+        I_cm = Iinj(i) - INa(i) - IK(i) - IL(i);
 
         % Calculate the new membrane potential
         % I_cm = C_M * dvdt
@@ -164,9 +169,11 @@ function [n] = calc_n(V)
 end
 
 function [gNa] = calc_gNa(gNa_bar, m, h)
-    gNa = gNa_bar * power(m, 4) * h;
+    gNa = gNa_bar * power(m, 3) * h;
 end
 
 function [gK] = calc_gK(gK_bar, n)
     gK = gK_bar * power(n, 4);
 end
+
+

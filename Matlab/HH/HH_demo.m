@@ -23,7 +23,7 @@ cl_conc_out = 110;  % mM; extra-cellular chloride concentration
 % T = 310;        % K;            temperature
 % F = 96.4853;    % C/mmol;       Faraday's constant
 
-t = 0:1e-3:(20);    % time vector;      msec
+t = 0:1e-3:20;    % time vector;      msec
 pd = 2;          % pulse delay;      usec
 pa = 100;           % pluse amplitude;  uA/cm^2
 pw = 0.5;           % pulse width;      usec
@@ -44,7 +44,6 @@ figure('Name','Membrane Potential & Injected Current');
 yyaxis left
 plot(t, V, 'LineWidth', 1.6)
 ylabel('V (mV)')
-ylim([-150 100])
 yyaxis right
 plot(t, Iinj, '--', 'LineWidth', 1.4)
 ylabel('I_{inj} (\muA/cm^2)')
@@ -58,7 +57,6 @@ figure('Name','Ionic Currents');
 plot(t, INa, 'LineWidth', 1.6); hold on
 plot(t, IK,  'LineWidth', 1.6);
 plot(t, IL,  'LineWidth', 1.6); hold off
-ylim([-10 10])
 xlabel('Time (ms)')
 ylabel('Current (\muA/cm^2)')
 title('Ionic Currents: I_{Na}, I_{K}, I_{L}')
@@ -67,13 +65,13 @@ grid on
 
 %% FIGURE 3 — Gate probabilities
 figure('Name','Gate Probabilities');
-plot(t, m, 'LineWidth', 1.6); hold on
-plot(t, h, 'LineWidth', 1.6);
-plot(t, n, 'LineWidth', 1.6); hold off
+plot(t, n, 'LineWidth', 1.6); hold on
+plot(t, m, 'LineWidth', 1.6); 
+plot(t, h, 'LineWidth', 1.6); hold off
 xlabel('Time (ms)')
 ylabel('Probability')
-title('Gates: m, h, n')
-legend('m', 'h', 'n', 'Location', 'best')
+title('Gates: n, m, h')
+legend('n', 'm', 'h', 'Location', 'best')
 ylim([0 1])
 grid on
  

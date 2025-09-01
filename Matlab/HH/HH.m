@@ -16,8 +16,6 @@
 
 function [V, n, m, h, INa, IK, IL, Iinj] = HH(t, pd, pa, pw, gNa_bar, gK_bar, gL_bar, k_conc_out, na_conc_out)
 
-    fprintf('Starting HH model\r\n');
-
     %% Constants
     c_m = 1;            % uF/cm^2; membrane capacitance per unit area
     
@@ -74,7 +72,7 @@ function [V, n, m, h, INa, IK, IL, Iinj] = HH(t, pd, pa, pw, gNa_bar, gK_bar, gL
         / ...
         gL_bar ...
     );
-    fprintf('E_K: %f, E_Na: %f, E_L: %f\r\n', E_K, E_Na, E_L);
+    % fprintf('E_K: %f, E_Na: %f, E_L: %f\r\n', E_K, E_Na, E_L);
     
     % Ion currents
     INa(1) = gNa_0 * (V_rest - E_Na);
@@ -121,8 +119,6 @@ function [V, n, m, h, INa, IK, IL, Iinj] = HH(t, pd, pa, pw, gNa_bar, gK_bar, gL
         V(i) = V(i-1) + dt * dvdt;
 
     end
-
-    fprintf('Finished HH simulation\r\n');
 
 end
 

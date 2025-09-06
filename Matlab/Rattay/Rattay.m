@@ -20,7 +20,7 @@
 
 function [V, f, Iinj] = Rattay(...
     t, i_elec, z, ...
-    N, L, D, l, rho_i, rho_e, ...
+    N, L, D, rho_i, rho_e, ...
     gNa_bar, gK_bar, gL_bar, k_conc_out, na_conc_out)
     
 
@@ -59,8 +59,8 @@ function [V, f, Iinj] = Rattay(...
 
     d = 0.7 * D;    % axon diameter;        um
     dx = 100 * D;   % inter-node spacing;   um
-    Ga = (pi * power(d, 2)) / (4 * rho_i * dx); % axial conductivity, mS
-    C_m = c_m * pi * d * L;                     % nodal membrane capacitance; uF
+    Ga = (pi * power(d * 1e-4, 2)) / (4 * rho_i * (dx * 1e-4)); % axial conductivity, mS
+    C_m = c_m * pi * (d * 1e-4) * (L * 1e-4);                     % nodal membrane capacitance; uF
 
     x = dx * (-(N-1)/2 : 1 : (N-1)/2);      % x coordinates of nodes; um
     r = sqrt(x.*x + power(z * 1e3, 2));     % distance of each node from the electrode
@@ -119,7 +119,7 @@ function [V, f, Iinj] = Rattay(...
         i_ionic = INa(:,i) + IK(:,i) + IL(:,i);
         I_ionic = pi * d * L * i_ionic;
 
-        V_e = (rho_e * i_elec(i)) / (4 * pi * r);
+        V_e = (rho_e * i_elec(i)) ./ (4 * pi * (r * 1e-4));
         f(1,i) = V_e(2) - V_e(1);
         f(2:N-1 , i) = V_e(1:N-2) - 2*V_e(2 : N-1) + V_e(3:N);
         f(N,i) = V_e(N-1) - V_e(N);

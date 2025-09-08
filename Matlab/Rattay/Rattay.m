@@ -1,7 +1,7 @@
 %% Inputs and Outputs
 % Inputs
 % t - time vector;      msec
-% i_elc - stimulus;     uA, same dimensions as t
+% i_elec - stimulus;     uA, same dimensions as t
 % z - electrode distance from axon; mm
 % N - total number of nodes
 % dx - distance between nodes; um
@@ -20,7 +20,7 @@
 
 function [V, f, Iinj] = Rattay(...
     t, i_elec, z, ...
-    N, L, D, rho_i, rho_e, ...
+    N, L, D, rho_e, rho_i, ...
     gNa_bar, gK_bar, gL_bar, k_conc_out, na_conc_out)
     
 
@@ -63,7 +63,7 @@ function [V, f, Iinj] = Rattay(...
     C_m = c_m * pi * (d * 1e-4) * (L * 1e-4);                     % nodal membrane capacitance; uF
 
     x = dx * (-(N-1)/2 : 1 : (N-1)/2);      % x coordinates of nodes; um
-    r = sqrt(x.*x + power(z * 1e3, 2));     % distance of each node from the electrode
+    % r = sqrt(x.*x + power(z * 1e3, 2));     % distance of each node from the electrode
 
     %% Calculate Initial Values
 
@@ -102,11 +102,11 @@ function [V, f, Iinj] = Rattay(...
     IL(:,1) = gL_bar * (V_rest - E_L);
 
     %% Simulate the ODEs with Euler's method
-    for i = 2:length(2)
+    for i = 2:length(t)
 
         dt = t(i) - t(i-1);
 
-        mi, hi, ni, ina_step, ik_step, il_step = HH_step(dt, V(:,i-1), m(:,i-1), h(:,i-1), n(:,i-1), gNa_bar, gK_bar, gL_bar);
+        [mi, hi, ni, ina_step, ik_step, il_step] = HH_step(dt, V(:,i-1), m(:,i-1), h(:,i-1), n(:,i-1), gNa_bar, gK_bar, gL_bar, E_Na, E_K, E_L);
 
         m(:,i) = mi;
         n(:,i) = ni;
@@ -116,25 +116,83 @@ function [V, f, Iinj] = Rattay(...
         IK(:,i) = ik_step;
         IL(:,i) = il_step;
 
+        % uA / cm^2
         i_ionic = INa(:,i) + IK(:,i) + IL(:,i);
-        I_ionic = pi * d * L * i_ionic;
+        I_ionic = pi * (d * 1e-4) * (L * 1e-4) * i_ionic;
 
-        V_e = (rho_e * i_elec(i)) ./ (4 * pi * (r * 1e-4));
-        f(1,i) = V_e(2) - V_e(1);
-        f(2:N-1 , i) = V_e(1:N-2) - 2*V_e(2 : N-1) + V_e(3:N);
-        f(N,i) = V_e(N-1) - V_e(N);
+        % V_e = (rho_e * i_elec(i)) ./ (4 * pi * (r * 1e-4));
+        % f(1,i) = V_e(2) - V_e(1);
+        % f(2:N-1 , i) = V_e(1:N-2) - 2*V_e(2 : N-1) + V_e(3:N);
+        % f(N,i) = V_e(N-1) - V_e(N);
 
-        obj = zeros(N);
-        obj(1) = V(2, i-1) - V(1, i-1);
-        obj(2:N-1) = V(1:N-2, i-1) - 2*V(2:N-1, i-1) + V(3:N, i-1);
-        obj(N) = V(N-1,i-1) - V(N,i-1);
+        % mV / msec
+        [fi] = activation_func(x, z, i_elec(i), rho_e, rho_i, d, L);
+        f(:,i) = fi';
 
-        Iinj(L,i) = Ga * (f + obj) / C_m;
+        % obj = zeros(N);
+        % obj(1) = V(2, i-1) - V(1, i-1);
+        % obj(2:N-1) = V(1:N-2, i-1) - 2*V(2:N-1, i-1) + V(3:N, i-1);
+        % obj(N) = V(N-1,i-1) - V(N,i-1);
+        [obj] = second_derivative(V(:,i-1));
 
-        dvdt = (Ga * (f + obj) - I_ionic) / C_m;
+        % Iinj(:,i) = f(:,i) .* C_m;
+        % 
+        % dvdt = f(:,i) + (Ga * obj - I_ionic) / C_m;
+        % 
+        % V(:,i) = V(:,i-1) + dvdt .* dt;
+
+        % cap: i = C * dvdt -> dvdt = i / C
+        % mV/msec + uA / uF
+        % dvdt = f(:,i); % + I_ionic / C_m;
+        dvdt = Ga * (f(:,i) + obj) / C_m;
+        % disp(dvdt)
         V(:,i) = V(:,i-1) + dvdt * dt;
 
     end
+end
+
+function [f] = second_derivative(x)
+    N = length(x);
+    f = zeros(size(x));
+
+    f(1) = x(2) - x(1);
+    f(2:N-1) = x(1:N-2) - 2*x(2 : N-1) + x(3:N);
+    f(N) = x(N-1) - x(N);
+end
+
+% Activation Function - Descibes the effect of the electrode on the nodes
+% x - The x-coordinates of each of the nodes;           um
+% z - The distance from the axon to the electrode;      mm
+% i_elec - The electrode stimulus;                      uA
+% rho_e - The resistivity of the extra-cellular space;  kOhm * cm
+% rho_i - The resistivity of the intra-cellular space;  kOhm * cm
+% d - The diameter of the axon;                         um
+% L - Length of each node;                              um
+% f - The value of the activation function at each x;   mV / msec
+function [f] = activation_func(x, z, i_elec, rho_e, rho_i, d, L)
+    
+    % Assume that all x is equally spaced; um
+    dx = x(2) - x(1);
+    
+    % axial conductivity, mS
+    % cm^2 / ((kOhm * cm) * cm) = 1/kOhm
+    Ga = (pi * power(d * 1e-4, 2)) / (4 * rho_i * (dx * 1e-4)); 
+
+    % nodal membrane capacitance; uF
+    % uF/cm^2 * cm  * cm
+    C_m = 1  * pi * (d * 1e-4) * (L * 1e-4);
+
+    % distance of each node from the electrode; um
+    r = sqrt(x.*x + power(z * 1e3, 2));
+
+    % mV = (kOhm * cm * uA) / (cm)
+    V_e = (rho_e * i_elec) ./ (4 * pi * (r * 1e-4));
+
+    % mV
+    [f] = second_derivative(V_e);
+
+    % mS / uF = 1 / (uF * kOhm) = 1 / msec
+    % f = Ga / C_m * f;
 end
 
 function [mi, hi, ni, I_Na, I_K, I_L] = HH_step(dt, V, m, h, n, gNa_bar, gK_bar, gL_bar, E_Na, E_K, E_L)
@@ -179,7 +237,7 @@ end
 % V - membrane potential in millivolts
 function [alpha_h, beta_h] = calc_h_rates(V)
     alpha_h = 0.07 * exp(-(V+65)/20);
-    beta_h = 1 / (1 + exp(-(V+35)/10));
+    beta_h = 1 ./ (1 + exp(-(V+35)/10));
 end
 
 % Calculate the forward and reverse rate constants for the 'n' gate

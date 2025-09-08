@@ -1,33 +1,52 @@
 %% Part 1
 % In one figure, plot the activation function for a range of electrode currents
 
-function [x, f] = activation_func(i_elec, N, rho_e, rho_i, z, D, L)
-    dx = L / (N-1); % um
+function [f] = second_derivative(x)
+    N = length(x);
+    f = zeros(size(x));
+
+    f(1) = x(2) - x(1);
+    f(2:N-1) = x(1:N-2) - 2.*x(2 : N-1) + x(3:N);
+    f(N) = x(N-1) - x(N);
+end
+
+% Activation Function - Descibes the effect of the electrode on the nodes
+% x - The x-coordinates of each of the nodes;           um
+% z - The distance from the axon to the electrode;      mm
+% i_elec - The electrode stimulus;                      uA
+% rho_e - The resistivity of the extra-cellular space;  kOhm * cm
+% rho_i - The resistivity of the intra-cellular space;  kOhm * cm
+% d - The diameter of the axon;                         um
+% f - The value of the activation function at each x;   mV / msec
+function [f] = activation_func(x, z, i_elec, rho_e, rho_i, d)
     
-    d = 0.7 * D;    % axon diameter;        um
+    % Assume that all x is equally spaced
+    dx = x(2) - x(1);
+    
     Ga = (pi * power(d * 1e-4, 2)) / (4 * rho_i * (dx * 1e-4)); % axial conductivity, mS
     % uF/cm^2 * cm  * cm
     C_m = 1  * pi * (d * 1e-4) * (2.5 * 1e-4);                     % nodal membrane capacitance; uF
 
-    x = dx * (-(N-1)/2 : 1 : (N-1)/2);      % x coordinates of nodes; um
     r = sqrt(x.*x + power(z * 1e3, 2));     % distance of each node from the electrode; um
-
-    f = zeros(size(x));
 
     % mV = (kOhm * cm * uA) / (cm)
     V_e = (rho_e * i_elec) ./ (4 * pi * (r * 1e-4));
-    f(1) = V_e(2) - V_e(1);
-    f(2:N-1) = V_e(1:N-2) - 2*V_e(2 : N-1) + V_e(3:N);
-    f(N) = V_e(N-1) - V_e(N);
+    [f] = second_derivative(V_e);
 
-    % mS / uF = 1 / (uF * kOhm) = ms^-1
+    % mS / uF = 1 / (uF * kOhm) = mV * msec^-1
     f = Ga / C_m * f;
 end
 
+N = 51;
+dx = 100 * 10;  % um
+x = dx * (-(N-1)/2 : 1 : (N-1)/2);
+z = 1;          % mm
+D = 10;
+d = 0.7 * D;
+
 figure()
 for i_elec = [-500 500 -2500 2500]
-% for i_elec = [2500]
-    [x, f] = activation_func(i_elec, 51, 0.3, 0.055, 1, 10, 100*10*51);
+    [f] = activation_func(x, z, i_elec, 0.3, 0.055, d);
     plot(x, f); hold on
 end
 hold off

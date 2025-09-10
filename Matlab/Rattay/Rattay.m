@@ -120,32 +120,16 @@ function [V, f, Iinj] = Rattay(...
         i_ionic = INa(:,i) + IK(:,i) + IL(:,i);
         I_ionic = pi * (d * 1e-4) * (L * 1e-4) * i_ionic;
 
-        % V_e = (rho_e * i_elec(i)) ./ (4 * pi * (r * 1e-4));
-        % f(1,i) = V_e(2) - V_e(1);
-        % f(2:N-1 , i) = V_e(1:N-2) - 2*V_e(2 : N-1) + V_e(3:N);
-        % f(N,i) = V_e(N-1) - V_e(N);
-
         % mV / msec
         [fi] = activation_func(x, z, i_elec(i), rho_e, rho_i, d, L);
         f(:,i) = fi';
 
-        % obj = zeros(N);
-        % obj(1) = V(2, i-1) - V(1, i-1);
-        % obj(2:N-1) = V(1:N-2, i-1) - 2*V(2:N-1, i-1) + V(3:N, i-1);
-        % obj(N) = V(N-1,i-1) - V(N,i-1);
         [obj] = second_derivative(V(:,i-1));
 
-        % Iinj(:,i) = f(:,i) .* C_m;
-        % 
-        % dvdt = f(:,i) + (Ga * obj - I_ionic) / C_m;
-        % 
-        % V(:,i) = V(:,i-1) + dvdt .* dt;
+        Iinj(:,i) = Ga * (f(:,i) + obj) / C_m;
 
-        % cap: i = C * dvdt -> dvdt = i / C
-        % mV/msec + uA / uF
-        % dvdt = f(:,i); % + I_ionic / C_m;
-        dvdt = Ga * (f(:,i) + obj) / C_m;
-        % disp(dvdt)
+        % cap: i = C * dvdt -> dvdt = i / C (V/s, or mV/msec)
+        dvdt = (Ga * (f(:,i) + obj) - I_ionic) / C_m;
         V(:,i) = V(:,i-1) + dvdt * dt;
 
     end
@@ -171,16 +155,16 @@ end
 % f - The value of the activation function at each x;   mV / msec
 function [f] = activation_func(x, z, i_elec, rho_e, rho_i, d, L)
     
-    % Assume that all x is equally spaced; um
-    dx = x(2) - x(1);
+    % % Assume that all x is equally spaced; um
+    % dx = x(2) - x(1);
     
-    % axial conductivity, mS
-    % cm^2 / ((kOhm * cm) * cm) = 1/kOhm
-    Ga = (pi * power(d * 1e-4, 2)) / (4 * rho_i * (dx * 1e-4)); 
+    % % axial conductivity, mS
+    % % cm^2 / ((kOhm * cm) * cm) = 1/kOhm
+    % Ga = (pi * power(d * 1e-4, 2)) / (4 * rho_i * (dx * 1e-4)); 
 
-    % nodal membrane capacitance; uF
-    % uF/cm^2 * cm  * cm
-    C_m = 1  * pi * (d * 1e-4) * (L * 1e-4);
+    % % nodal membrane capacitance; uF
+    % % uF/cm^2 * cm  * cm
+    % C_m = 1  * pi * (d * 1e-4) * (L * 1e-4);
 
     % distance of each node from the electrode; um
     r = sqrt(x.*x + power(z * 1e3, 2));
@@ -196,10 +180,6 @@ function [f] = activation_func(x, z, i_elec, rho_e, rho_i, d, L)
 end
 
 function [mi, hi, ni, I_Na, I_K, I_L] = HH_step(dt, V, m, h, n, gNa_bar, gK_bar, gL_bar, E_Na, E_K, E_L)
-
-    % I_Na = zeros(size(v));
-    % I_K = zeros(size(V));
-    % I_L = zeros(size(V));
 
     [alpha_m, beta_m] = calc_m_rates(V);
     [alpha_h, beta_h] = calc_h_rates(V);

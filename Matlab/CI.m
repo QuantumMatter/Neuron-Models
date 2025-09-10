@@ -1,19 +1,21 @@
-function [] = CI(path)
+function [] = CI(p)
 
     close all;
-    clearvars -except path
+    clearvars -except p
 
-    addpath('./HH');
-    addpath('./Rattay');
-    addpath('./utils');
+    cwd = fileparts(mfilename('fullpath'));
+
+    addpath(fullfile(cwd, 'HH'));
+    addpath(fullfile(cwd, 'Rattay'));
+    addpath(fullfile(cwd, 'utils'));
 
     HH_demo;
-    save_all_open_figs(sprintf('%s/HH', path), '')
+    save_all_open_figs(fullfile(p, 'HH'), '')
 
     close all;
-    clearvars -except path
+    clearvars -except p
     Rattay_demo;
-    save_all_open_figs(sprintf('%s/Rattay', path), '')
+    save_all_open_figs(fullfile(p, 'Rattay'), '')
 
     close all
     clearvars

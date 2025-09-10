@@ -8,7 +8,7 @@ jobs:
             - uses: matlab-actions/setup-matlab@v2
             - uses: matlab-actions/run-command@v2
               with:
-                command: addpath("./Matlab/HH"), addpath("./Matlab/utils"), HH_demo, save_all_open_figs("export/HH", "fig_")
+                command: addpath("./Matlab"), CI('export')
             - uses: actions/upload-artifact@v4
               with:
                 name: matlab-figures

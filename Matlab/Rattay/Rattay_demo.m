@@ -34,20 +34,21 @@ x = -((N-1)/2):1:(N-1)/2;
 
 figure('Name', 'Stimulus')
 plot(t, i_elec)
-
-% Activation function during stimulation
-figure()
-plot(x, f(:, (i_start / dt)+2))
-
-figure('Name', 'Activation Function')
-mesh(t, x, f)
-
-% disp(size(x))
-% disp(size(t))
-% disp(size(V))
-
-figure('Name', 'Membrane Potential for Central Neuron')
-plot(t, V((N+1)/2,:))
+ylabel('Stimulator Current (uA)')
+xlabel('Time (ms)')
 
 figure('Name', 'Membrane Potential for Full Axon')
 mesh(t, x, V)
+xlabel('Time (ms)')
+ylabel('Node ID')
+zlabel('Voltage (mV)')
+
+figure('Name', "Many Nodes Timeseries")
+for i = 1:5:26
+    plot(t, V(i,:), 'DisplayName', sprintf("Node %i", i-1)); hold on
+end
+hold off
+legend show
+xlabel('Time (ms)')
+ylabel('Voltage (mV)')
+grid on

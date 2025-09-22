@@ -1,13 +1,12 @@
-t = 0:1e-3:10;                % msec
-% stim = zeros(1, length(t));     % uA
-pa = 1e-6;
-pd = 1;
-pw = 1;
-stim = -pa * (stepfun(t, pd) - stepfun(t, pd+pw));
+t = 0:1e-3:2.1;                  % msec
+pa = 300;                       % uA / cm^2
+pd = 0.1;                         % msec
+pw = 0.5;                       % msec
+stim = pa * (stepfun(t, pd) - stepfun(t, pd+pw));
 
 V = zeros(1, length(t));        % mV    Deviation from resting potential
-iNa = zeros(1, length(t));      % uA
-iK = zeros(1, length(t));       % uA
+iNa = zeros(1, length(t));      % uA / cm^2
+iK = zeros(1, length(t));       % uA / cm^2
 h = zeros(1, length(t));        % prob, [0,1]
 m = zeros(1, length(t));        % prob, [0,1]
 n = zeros(1, length(t));        % prob, [0,1]
@@ -17,10 +16,10 @@ T = 310.15;     % K
 PNa = 51.5;     % um/s      Sodium permeability constant
 PK = 2.0;       % um/s      Potassium permeability constant
 
-Na_out = 142.0; % mol/m^3
-Na_in = 10;     % mol/m^3
-K_out = 4.2;    % mol/m^3
-K_in = 141.0;   % mol/m^3
+Na_out = 142.0; % mol/m^3, or mM
+Na_in = 10;     % mol/m^3, or mM
+K_out = 4.2;    % mol/m^3, or mM
+K_in = 141.0;   % mol/m^3, or mM
 
 c_m = 0.02;     % F/m^2     Membrane Capacitance per unit area
 dk = 2;         % um        diameter of node k (1.4-2.81)
@@ -49,7 +48,7 @@ n(1) = alpha_n / (alpha_n + beta_n);
 for i = 2:length(t)
 
     dt = t(i) - t(i-1);
-    dt = dt * 1e-3;
+    dt = dt * 1e-3; % msec -> sec
 
     [Nai, Ki, hi, mi, ni] = SENNChannelStep(...
         V(i-1), dt, ...
@@ -60,17 +59,24 @@ for i = 2:length(t)
         T ...
     );
 
-    iNa(i) = Nai;
-    iK(i) = Ki;
+    % uA / m^2 -> uA / cm^2
+    iNa(i) = Nai * 1e-4;
+    iK(i) = Ki * 1e-4;
     h(i) = hi;
     m(i) = mi;
     n(i) = ni;
 
-    
-    Iion = pi * (dk * 1e-6) * (lk * 1e-6) * (iNa(i) + iK(i));
+    Iion = (pi * (dk * 1e-4) * (lk * 1e-4)) * (iNa(i) + iK(i));        % uA
 
-    dvdt = (1 / C_m) * (stim(i) - GL * (V(i-1) - VL) - Iion);
-    V(i) = V(i-1) + dvdt * dt;
+    % Total membrane current; uA
+    I_m = (stim(i) * 1e-6);
+    % Siemens * uV = uA
+    I_m = I_m - (GL * (V(i-1) - VL) * 1e3);
+    I_m = I_m - Iion;
+
+    % uA / uF -> V/sec
+    dvdt = I_m / C_m;
+    V(i) = V(i-1) + (dvdt * 1e3) * dt;
 
     % disp(dvdt)
     % disp([GL*(V(i-1)-VL) iNa(i) iK(i)])
@@ -87,4 +93,10 @@ figure()
 plot(t, h); hold on
 plot(t, m);
 plot(t, n); hold off
-legend('H', 'M', 'N')
+legend('h', 'm', 'n')
+
+figure()
+plot(t, iNa * 1e-3); hold on
+plot(t, iK * 1e-3); hold off
+legend('iNa', 'iK')
+ylabel('Current (mA/cm^2)')

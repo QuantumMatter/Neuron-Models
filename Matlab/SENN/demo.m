@@ -1,7 +1,7 @@
 t = 0:1e-3:2.1;                  % msec
-pa = 300;                       % uA / cm^2
+pa = 200;                       % uA / cm^2
 pd = 0.1;                         % msec
-pw = 0.5;                       % msec
+pw = 0.1;                       % msec
 stim = pa * (stepfun(t, pd) - stepfun(t, pd+pw));
 
 V = zeros(1, length(t));        % mV    Deviation from resting potential
@@ -14,7 +14,7 @@ n = zeros(1, length(t));        % prob, [0,1]
 T = 310.15;     % K
 
 PNa = 51.5;     % um/s      Sodium permeability constant
-PK = 2.0;       % um/s      Potassium permeability constant
+PK = 2.04;       % um/s      Potassium permeability constant
 
 Na_out = 142.0; % mol/m^3, or mM
 Na_in = 10;     % mol/m^3, or mM
@@ -85,6 +85,9 @@ end
 
 figure()
 plot(t, V)
+title('Membrane Potential vs Time')
+ylabel('Membrane Potential (mV)')
+xlabel('Time (msec)')
 
 figure()
 plot(t, stim)
@@ -94,6 +97,9 @@ plot(t, h); hold on
 plot(t, m);
 plot(t, n); hold off
 legend('h', 'm', 'n')
+ylabel('Probability')
+xlabel('Time (msec)')
+title('Gating Variables vs Time')
 
 figure()
 plot(t, iNa * 1e-3); hold on

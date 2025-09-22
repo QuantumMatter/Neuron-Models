@@ -11,7 +11,7 @@ function [alpha, beta] = m_dynamics(V, T)
     Cbm = 9.41;     % mV
     Qam = 2.2;
     Qbm = 2.2;
-    T0 = 37 + 273.15;
+    T0 = 293.15;
 
     alpha = power(Qam, (T-T0)/10) * ...
         (Aam * (V - Bam)) ...

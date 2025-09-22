@@ -8,7 +8,7 @@ function [alpha, beta] = n_dynamics(V, T)
     Cbn = 10.00;
     Qan = 3.0;
     Qbn = 3.0;
-    T0 = 37 + 273.15;
+    T0 = 293.15;
 
     alpha = power(Qan, (T-T0)/10) * ...
         (Aan * (V - Ban)) ...

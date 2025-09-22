@@ -8,7 +8,7 @@ function [alpha, beta] = h_dynamics(V, T)
     Cbh = 12.50;
     Qah = 2.9;
     Qbh = 2.9;
-    T0 = 37 + 273.15;
+    T0 = 293.15;
 
     alpha = power(Qah, (T-T0)/10) * ...
         (Aah * (Bah - V)) ...

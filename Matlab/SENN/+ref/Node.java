@@ -40,7 +40,7 @@ public abstract class Node implements GlobalConstants {
 										double diamL, double diamR);
 	
 	//same as above, but allows intracellular injection of current I (amperes)
-	public abstract double compute(double Ve, double Ve_L, double Ve_R, double V, 
+	public abstract double[] compute(double Ve, double Ve_L, double Ve_R, double V, 
 			double V_L, double V_R, double distL, double distR, 
 				double diamL, double diamR, double I);
 

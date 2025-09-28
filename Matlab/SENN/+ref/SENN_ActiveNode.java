@@ -17,8 +17,8 @@ public class SENN_ActiveNode extends Node implements GlobalConstants {
 	private double Vl = Vrest;	//(Volts) leakage voltage
 	
 	//some member variables
-	private Channel channel_K;	//potassium channel
-	private Channel	channel_Na;		//sodium channel
+	public Channel channel_K;	//potassium channel
+	public Channel	channel_Na;		//sodium channel
 
 	//units in volts, seconds, meters
 	public SENN_ActiveNode(double diam, double len, double t_increment, PrintWriter errorLog) {
@@ -66,14 +66,16 @@ public class SENN_ActiveNode extends Node implements GlobalConstants {
 	}
 	
 	//same as above, but allows intracellular injection of current I (amperes)
-	public double compute(double Ve, double Ve_L, double Ve_R, double V, 
+	public double[] compute(double Ve, double Ve_L, double Ve_R, double V, 
 			double V_L, double V_R, double distL, double distR, 
 				double diamL, double diamR, double I)	{
 		//left and right axon conductances
 		double Ga_L = (PI/(Ra_u*distL))*pow((diamL/2),2);	//axon conductance left
 		double Ga_R = (PI/(Ra_u*distR))*pow((diamR/2),2);	//axon conductance right
 		//begin by finding the ionic current
-		double I_ion = channel_K.current(V + Vrest) + channel_Na.current(V + Vrest);
+		double INa = channel_Na.current(V + Vrest);
+		double IK = channel_K.current(V + Vrest);
+		double I_ion = INa + IK;
 		//now find the leakage current
 		double I_leak = Gl*(V+Vrest-Vl);
 		//find induced currents
@@ -81,7 +83,15 @@ public class SENN_ActiveNode extends Node implements GlobalConstants {
 		double I_ind = 0;
 		//now find the voltage derivative
 		double dV = (-1/Cm)*(I_ion + I_leak + I_ind - I);
-		return (V + dV*deltaT);		//Euler's method, deltaT in seconds!
+
+		double[] result = {
+			(V + dV*deltaT),
+			INa,
+			IK,
+			I_leak,
+		};
+		return result;
+		// return (V + dV*deltaT);		//Euler's method, deltaT in seconds!
 	}
 
 

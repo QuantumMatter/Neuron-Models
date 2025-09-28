@@ -15,9 +15,6 @@ function [iNa, iK, h, m, n] = SENNChannelStep(...
     F = 96485;  % Coulombs / mol
     R = 8.314;  % J / (K * mol)
 
-    % V  - mV
-    % dt - msec
-
     % In terms of msec, mV, and K, gives mV/msec
     [ah, bh] = dynamics.h_dynamics(V * 1e3, T);
     [am, bm] = dynamics.m_dynamics(V * 1e3, T);
@@ -34,6 +31,8 @@ function [iNa, iK, h, m, n] = SENNChannelStep(...
     h = h_prev + dhdt * dt * 1e3;
     m = m_prev + dmdt * dt * 1e3;
     n = n_prev + dndt * dt * 1e3;
+
+    V = V - 0.0846;
 
     % (um/s) * (C^2 / mol^2)
     iNa = dynamics.vtrap(V, F/(R*T));

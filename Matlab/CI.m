@@ -20,7 +20,7 @@ function [] = CI(p)
 
     close all;
     clearvars -except p path
-    demo_single_propagate;
+    demo_propagate;
     save_all_open_figs(fullfile(p, 'SENN'), '')
 
     close all

@@ -8,10 +8,25 @@
 % This was done by finding the maclaurin
 % expansion and then simplifying
 function [y] = vtrap(x, alpha)
-    if abs(x*alpha) > 1e-6
-        y = x / (1 - exp(x*alpha));
-        return;
-    end
-    y = alpha + x*alpha^2/2 + x.^2*alpha^3/6;
-    y = -1./y;
+
+    % if abs(x*alpha) > 1e-6
+    %     y = x / (1 - exp(x*alpha));
+    %     return;
+    % end
+    % y = alpha + x*alpha^2/2 + x.^2*alpha^3/6;
+    % y = -1./y;
+
+    % Vectorize the function by using a mask
+    % to identify entries that are not stable
+
+    y = zeros(size(x));
+
+    xa = x * alpha;
+    mask = abs(xa) <= 1e-6;
+
+    y(~mask) = x(~mask) ./ -expm1(xa(~mask));
+
+    z = alpha + xa(mask)*alpha^2/2 + xa(mask).^2*alpha^3/6;
+    y(mask) = -1 ./ z;
+    
 end

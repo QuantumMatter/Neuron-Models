@@ -11,11 +11,11 @@ function [alpha, beta] = h_dynamics(V, T)
     T0 = 293.15;
 
     alpha = Aah * power(Qah, (T-T0)/10);
-    alpha = alpha * dynamics.vtrap(Bah - V, -1/Cah);
+    alpha = alpha .* dynamics.vtrap(Bah - V, -1/Cah);
 
     beta = power(Qbh, (T-T0)/10) * ...
         (Abh) ...
-        / ...
+        ./ ...
         (1 + exp((Bbh - V) / Cbh));
 
 end

@@ -11,9 +11,9 @@ function [alpha, beta] = n_dynamics(V, T)
     T0 = 293.15;
 
     alpha = -Aan * power(Qan, (T-T0)/10);
-    alpha = alpha * dynamics.vtrap(Ban - V, 1/Can);
+    alpha = alpha .* dynamics.vtrap(Ban - V, 1/Can);
 
     beta = Abn * power(Qbn, (T-T0)/10);
-    beta = beta * dynamics.vtrap(Bbn - V, -1/Cbn);
+    beta = beta .* dynamics.vtrap(Bbn - V, -1/Cbn);
 
 end

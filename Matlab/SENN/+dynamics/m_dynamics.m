@@ -14,9 +14,9 @@ function [alpha, beta] = m_dynamics(V, T)
     T0 = 293.15;
 
     alpha = -Aam * power(Qam, (T-T0)/10);
-    alpha = alpha * dynamics.vtrap(Bam - V, 1/Cam);
+    alpha = alpha .* dynamics.vtrap(Bam - V, 1/Cam);
 
     beta = Abm * power(Qbm, (T-T0)/10);
-    beta = beta * dynamics.vtrap(Bbm - V, -1/Cbm);
+    beta = beta .* dynamics.vtrap(Bbm - V, -1/Cbm);
 
 end

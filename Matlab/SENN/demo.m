@@ -1,8 +1,9 @@
-t = 0:1e-3:5;                   % msec
-t = t * 1e-3;                   % msec -> sec
+dt = 1e-6;
+t = 0:dt:0.002; % sec
+
 pa = 10e-9;                     % A
-pd = 1e-3;                      % sec
-pw = 0.1e-3;                    % sec
+pd = 0.5e-3;                      % sec
+pw = 0.04e-3;                    % sec
 stim = pa * (stepfun(t, pd) - stepfun(t, pd+pw));
 
 V = zeros(1, length(t));        % V    Deviation from resting potential
@@ -17,10 +18,10 @@ T = 310.15;     % K
 PNa = 51.5e-6;  % m/s      Sodium permeability constant
 PK = 2.04e-6;   % m/s      Potassium permeability constant
 
-Na_out = 142.0e-3; % M
-Na_in = 10e-3;     % M
-K_out = 4.2e-3;    % M
-K_in = 141.0e-3;   % M
+Na_out = 142.0; % M
+Na_in = 10;     % M
+K_out = 4.2;    % M
+K_in = 141.0;   % M
 
 c_m = 0.02;     % F/m^2     Membrane Capacitance per unit area
 dk = 10e-6;     % m        diameter of node k (1.4-2.81)
@@ -46,16 +47,17 @@ n(1) = alpha_n / (alpha_n + beta_n);
 
 for i = 2:length(t)
 
-    dt = t(i) - t(i-1);
-
     [Nai, Ki, hi, mi, ni] = SENNChannelStep(...
-        V(i-1), dt, ...
+        V(i-1), -0.0846, dt, ...
         h(i-1), m(i-1), n(i-1), ...
         PNa, PK, ...
         Na_in, Na_out, ...
         K_in, K_out, ...
         T ...
     );
+
+    Nai = (pi * dk * lk) * Nai;
+    Ki = (pi * dk * lk) * Ki;
 
     % uA / m^2 -> uA / cm^2
     iNa(i) = Nai;
@@ -64,7 +66,7 @@ for i = 2:length(t)
     m(i) = mi;
     n(i) = ni;
 
-    Iion = (pi * dk * lk) * (iNa(i) + iK(i));
+    Iion = Nai + Ki;
     Ileak = GL * (V(i-1) - VL);
     Istim = stim(i);
 

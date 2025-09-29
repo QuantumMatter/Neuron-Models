@@ -106,7 +106,7 @@ function [V, david, evan] = validate_potassium_current()
 
             % David's implementation
             [~, iK, ~, ~, ~] = SENNChannelStep(...
-                v, 0, ...           % V, sec
+                v, -0.0846, 0, ...           % V, sec
                 hi, mi, ni, ...     % h, m, n
                 PNa, PK, ...        % PNa, PK
                 Na_in, Na_out, ...  % Na_in, Na_out
@@ -181,7 +181,7 @@ function [V, david, evan] = validate_sodium_current()
 
                 % David's implementation
                 [iNa, ~, ~, ~, ~] = SENNChannelStep(...
-                    v, 0, ...           % V, sec
+                    v, -0.0846, 0, ...           % V, sec
                     hi, mi, ni, ...     % h, m, n
                     PNa, PK, ...        % PNa, PK
                     Na_in, Na_out, ...  % Na_in, Na_out
@@ -263,7 +263,7 @@ function [t, V, stim, h, m, n, iNa, iK] = validate_eulers()
 
         % David's implementation
         [Nai, Ki, hi, mi, ni] = SENNChannelStep(...
-            V(1,i-1), dt, ...
+            V(1,i-1), -0.0846, dt, ...
             h(1,i-1), m(1,i-1), n(1,i-1), ...
             PNa, PK, ...
             Na_in, Na_out, ...
@@ -285,8 +285,6 @@ function [t, V, stim, h, m, n, iNa, iK] = validate_eulers()
         V(1,i) = V(1,i-1) + dVdt * dt;
 
         % Evan's implementation
-        % Nai = sodiumChannel.current(V(2,i-1) + GlobalConstants.Vrest);
-        % Ki = potassiumChannel.current(V(2,i-1) + GlobalConstants.Vrest);
         evan = node.compute(0, 0, 0, V(2,i-1), 0, 0, 1, 1, 0, 0, stim(i));
         V(2,i) = evan(1);
         iNa(2,i) = evan(2);

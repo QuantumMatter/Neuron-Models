@@ -99,8 +99,14 @@ function [f] = second_derivative(x)
     f(N) = x(N-1) - x(N);
 end
 
+figure("Name", "Membrane Potential for Full Axon")
+mesh(t*1e3, x*1e6, V*1e3)
+xlabel('Time (msec)')
+ylabel('Position along axon (um)')
+zlabel('Voltage (mV)')
+
 % Plot a few adjacent nodes
-figure()
+figure('Name', "Many Nodes Timeseries")
 for i = 1:5:26
     plot(t*1e3, V(i,:)*1e3, 'DisplayName', sprintf("Node %i", i-1)); hold on
 end
@@ -109,5 +115,5 @@ xlabel('Time (msec)')
 ylabel('Voltage (mV)')
 grid on
 yyaxis right
-plot(t*1e3, Iinj(26,:)*1e6, 'k', 'DisplayName', 'Stimulus Current at Node 25'); hold off
+plot(t*1e3, stim*1e6, 'k', 'DisplayName', 'Stimulator Current'); hold off
 ylabel('Stimulus Current (uA)')

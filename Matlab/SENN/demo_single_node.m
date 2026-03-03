@@ -1,9 +1,17 @@
-dt = 1e-6;
-t = 0:dt:0.002; % sec
+% dt = 1e-6;
+% t = 0:dt:0.002; % sec
 
-pa = 10e-9;                     % A
+% pa = 10e-9;                     % A
+% pd = 0.5e-3;                      % sec
+% pw = 0.04e-3;                    % sec
+
+dt = 1e-6;
+t = 0:dt:0.01; % sec
+
+pa = 0.01e-9;                     % A
 pd = 0.5e-3;                      % sec
-pw = 0.04e-3;                    % sec
+pw = 10e-3;                    % sec
+
 stim = pa * (stepfun(t, pd) - stepfun(t, pd+pw));
 
 V = zeros(1, length(t));        % V    Deviation from resting potential
